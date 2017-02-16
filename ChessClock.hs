@@ -13,20 +13,35 @@ import System.Environment (getArgs)
 import System.Exit (exitFailure)
 import System.IO (hSetBuffering, stdin, BufferMode (NoBuffering))
 import Text.Printf (printf)
+import Text.Read (readMaybe)
 
+-- check if string consists of numbers only
+isNum :: String -> Bool
+isNum = all (\t -> t `elem` "0123456789")
+
+-- check correctness of Time
+checkTimeFormat :: Time -> Bool
+checkTimeFormat time = if (isNum $ fst time) && (isNum $ snd time)
+  then True
+  else False
+  
 getTime :: [String] -> [String]
 getTime args = let index = findIndex (== "-t") args in
   if isNothing index then ["10","00"]
   else splitOn ":" $ (!!) args $ 1 + (fromJust index)
 
-getIncrement :: [String] -> Int
+getIncrement :: [String] -> Maybe Int
 getIncrement args = let index = findIndex (== "-i") args in
-  if isNothing index then 0 else read $ (!!) args $ 1 + (fromJust index) :: Int
+  if isNothing index
+  then Just 0
+  else readMaybe $ (!!) args $ 1 + (fromJust index)
 
+-- get Time and increment, uses two helper functions above
 parseArgs :: [String] -> (Time, Int)
 parseArgs args = ((head time, last time), increment) where
   time = getTime args
-  increment = getIncrement args  
+  maybeInc = getIncrement args
+  increment = if isNothing maybeInc then 0 else fromJust maybeInc
 
 -- check if spacebar button has been pressed
 spacebarPressDetector :: ThreadId -> IO ()
@@ -76,7 +91,9 @@ mainLoop state inc = do
 main = do
   args <- getArgs
   let params = parseArgs args
-  let newClock = (fst params, fst params)
+  let time = if checkTimeFormat $ fst params
+             then normalizeTime $ fst params
+             else ("10", "00")
   catchJust (\e -> if e == ThreadKilled then Just () else Nothing)
-            (mainLoop State { clock = newClock, move = W } $ snd params)
+            (mainLoop State { clock = (time, time), move = W } $ snd params)
             (\e -> return ())

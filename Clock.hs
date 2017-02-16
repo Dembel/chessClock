@@ -1,5 +1,6 @@
-module Clock (Clock, Time, ClockState(..), Move (..)
-             , printClock, countdown, switchMove, incrementClock) where
+module Clock (Clock, Time, ClockState (..), Move (..)
+             , printClock, countdown, switchMove, incrementClock, addZero
+             , normalizeTime) where
 
 import Data.List (transpose, replicate, words)
 import Data.List.Split (chunksOf)
@@ -19,6 +20,18 @@ data Move = W | B deriving Eq
 
 addZero :: String -> String
 addZero str = if (length str) < 2 then '0' : str else str
+
+trueSec :: Int -> Int
+trueSec sec | sec < 60            = sec
+            | (sec `div` 60) == 1 = sec - 60
+            | otherwise           = trueSec $ sec - 60
+
+normalizeTime :: Time -> Time
+normalizeTime time = normalized where
+  min = read $ fst time
+  sec = read $ snd time
+  normalized = (addZero . show $ min + (sec `div` 60)
+               , addZero . show $ trueSec sec)
 
 -- toggle curent player to move
 switchMove :: ClockState -> ClockState
