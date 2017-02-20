@@ -1,6 +1,5 @@
 module Clock (Clock, Time, ClockState (..), Move (..)
-             , printClock, countdown, switchMove, incrementClock, addZero
-             , normalizeTime) where
+             , printPrettyClock, countdown, incrementClock, normalizeTime) where
 
 import Data.List (transpose, replicate, words)
 import Data.List.Split (chunksOf)
@@ -18,44 +17,46 @@ type Clock = (White, Black)
 data ClockState = State { clock :: Clock, move :: Move }
 data Move = W | B deriving Eq
 
+{- ******************** clock-normalizing stuff ******************** -}
+
+-- add zero to minutes or seconds if there's only one digit to conform to
+-- digital clock standarts (e.g. 2-digit numbers)
 addZero :: String -> String
 addZero str = if (length str) < 2 then '0' : str else str
 
-trueSec :: Int -> Int
-trueSec sec | sec < 60            = sec
+-- bring seconds to time standarts where seconds can't be gt 60.
+-- Ignores minutes, we deal with them in normalizeTime func (see below)
+-- Serves as helper for normalizeTime func
+normalizeSec :: Int -> Int
+normalizeSec sec | sec < 60            = sec
             | (sec `div` 60) == 1 = sec - 60
-            | otherwise           = trueSec $ sec - 60
+            | otherwise           = normalizeSec $ sec - 60
 
+-- bring input to time standarts by correcting it's minutes and seconds
+-- (e.g. 00:120 input would be transformed into 02:00 etc.)
 normalizeTime :: Time -> Time
 normalizeTime time = normalized where
-  min = read $ fst time
   sec = read $ snd time
-  normalized = (addZero . show $ min + (sec `div` 60)
-               , addZero . show $ trueSec sec)
+  min = addZero . show $ (read $ fst time) + (sec `div` 60)
+  normalized = (min, addZero . show $ normalizeSec sec)
+               
+{- ********************************************************************** -}
+{- ******************** operations on clock ***************************** -}
 
--- toggle curent player to move
-switchMove :: ClockState -> ClockState
-switchMove state = if move state == W
-  then State { clock = clock state, move = B }
-  else State { clock = clock state, move = W }
-  
 -- helper for incrementClock (see below)
-incrementTime :: Int -> Time -> Time
-incrementTime inc time = incremented where
-  min = read $ fst time
-  sec = read $ snd time
-  incremented = if sec < (60 - inc)
-    then (addZero $ show min, addZero . show $ sec + inc)
-    else (addZero . show $ min + 1, addZero . show $ (sec + inc) - 60)
+incrementTime :: Time -> Int -> Time
+incrementTime time inc = normalizeTime (min, sec) where
+  min = fst time
+  sec = show $ (read $ snd time) + inc
 
--- add increment to the ClockState. Use incrementTime (see above) as helper
-incrementClock :: Int -> ClockState -> ClockState
-incrementClock inc state = incremented where
+-- add increment to the ClockState. Uses incrementTime (see above) as helper
+incrementClock :: ClockState -> Int -> ClockState
+incrementClock state inc = incremented where
   white = fst $ clock state
   black = snd $ clock state
   incremented = if move state == W
-    then State { clock = (incrementTime inc white, black), move = W }
-    else State { clock = (white, incrementTime inc black), move = B }
+    then State { clock = (incrementTime white inc, black), move = move state }
+    else State { clock = (white, incrementTime black inc), move = move state }
 
 -- subtract one second from Time
 countdown :: Time -> Time
@@ -66,26 +67,27 @@ countdown time = newTime where
     then (addZero . show $ min - 1, "59")
     else (addZero $ show min, addZero . show $ sec - 1)
 
--- take standart Int from Clock and
--- return neat big numbers improving readability
+-- take Time as Int from Clock and
+-- replace digits with neat big numbers improving readability
 prettifyClock :: Clock -> String
 prettifyClock clock = prettifyed where
   colon = [["   ", "   ", "|||", "   ", "   ", "|||", "   ", "   "]]
   space = [x | x <- [chunksOf 1 $ concat $ replicate 8 " "]]
-  cols = [x | x <- [chunksOf 1 $ concat $ replicate 8 "\n"]]
-  yellowBg = [x | x <- [words $ concat $ replicate 8 "\x1b[37;40m "]]
-  blackBg = [x | x <- [words $ concat $ replicate 8 "\x1b[31;40m "]]
+  colums = [x | x <- [chunksOf 1 $ concat $ replicate 8 "\n"]]
+  whiteFg = [x | x <- [words $ concat $ replicate 8 "\x1b[37;40m "]]
+  redFg = [x | x <- [words $ concat $ replicate 8 "\x1b[31;40m "]]
   resetColors = [x | x <- [words $ concat $ replicate 8 "\x1b[39;49m "]]
   wMin = map (\num -> numbers !! read num) (chunksOf 1 $ fst $ fst clock)
   wSec = map (\num -> numbers !! read num) (chunksOf 1 $ snd $ fst clock)
   bMin = map (\num -> numbers !! read num) (chunksOf 1 $ fst $ snd clock)
   bSec = map (\num -> numbers !! read num) (chunksOf 1 $ snd $ snd clock)
-  transposed = transpose (yellowBg ++ wMin ++ colon ++ wSec ++ resetColors
-                          ++ space ++ blackBg ++ bMin ++ colon ++ bSec
-                          ++ resetColors ++ cols)
-  prettifyed = concatMap unwords transposed
+  prettifyed = concatMap unwords $ transpose $
+               whiteFg ++ wMin ++ colon ++ wSec ++ resetColors ++ space ++ redFg
+               ++ bMin ++ colon ++ bSec ++ resetColors ++ colums
+
+{- ********************************************************************** -}
 
 -- print given Clock to stdout
-printClock :: Clock -> IO ()
-printClock clock = printf "\n%s%s" (prettifyClock clock) backtrack where
-  backtrack = (concat $ replicate 9 "\x1b[1A") ++ "\r"
+printPrettyClock :: Clock -> IO ()
+printPrettyClock clock = printf "\n%s%s" backtrack (prettifyClock clock) where
+  backtrack = "\x1b[2J\x1b[12;1f"

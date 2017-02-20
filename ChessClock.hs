@@ -15,7 +15,13 @@ import System.IO (hSetBuffering, stdin, BufferMode (NoBuffering))
 import Text.Printf (printf)
 import Text.Read (readMaybe)
 
--- check if string consists of numbers only
+-- toggle curent player to move
+switchMove :: ClockState -> ClockState
+switchMove state = if move state == W
+  then State { clock = clock state, move = B }
+  else State { clock = clock state, move = W }
+
+-- check if string is number
 isNum :: String -> Bool
 isNum = all (\t -> t `elem` "0123456789")
 
@@ -38,7 +44,7 @@ getIncrement args = let index = findIndex (== "-i") args in
 
 -- get Time and increment, uses two helper functions above
 parseArgs :: [String] -> (Time, Int)
-parseArgs args = ((head time, last time), increment) where
+parseArgs args = ((last $ init time, last time), increment) where
   time = getTime args
   maybeInc = getIncrement args
   increment = if isNothing maybeInc then 0 else fromJust maybeInc
@@ -56,24 +62,24 @@ threadDelaySec sec = threadDelay (10 ^ 6 * sec)
 
 timer :: ClockState -> MVar ClockState -> IO ()
 timer State { clock = (("00","00"), _)} _ = do
-  printf "\x1b[J%s\n" "Black won on time"
+  printf "\x1b[2J\x1b[1;1fBlack won on time\n"
   exitFailure
 timer State { clock = (_, ("00","00"))} _ = do
-  printf "\x1b[J%s\n" "White won on time"
+  printf "\x1b[2J\x1b[1;1fWhite won on time\n"
   exitFailure
 timer state mvar = do
   catchJust (\e -> if e == ThreadKilled then Just () else Nothing)
             (runTimer)
             (\_ -> putMVar mvar state) where
-  runTimer = do
-    let white = fst $ clock state
-    let black = snd $ clock state
-    let curMove = move state
-    printClock (white, black)
-    threadDelaySec 1
-    if curMove == W
-      then timer State { clock = (countdown white, black), move = curMove } mvar
-      else timer State { clock = (white, countdown black), move = curMove } mvar
+    runTimer = do
+      let white = fst $ clock state
+      let black = snd $ clock state
+      let curMove = move state
+      printPrettyClock (white, black)
+      threadDelaySec 1
+      if curMove == W
+        then timer State { clock = (countdown white, black), move = curMove } mvar
+        else timer State { clock = (white, countdown black), move = curMove } mvar
 
 mainLoop :: ClockState -> Int -> IO ()
 mainLoop state inc = do
@@ -85,7 +91,7 @@ mainLoop state inc = do
                                 else return ())
   forkIO $ spacebarPressDetector timerID
   lastState <- takeMVar stateMVar
-  mainLoop (switchMove $ incrementClock inc lastState) inc
+  mainLoop (switchMove $ incrementClock lastState inc) inc
 
 -- initialize
 main = do
