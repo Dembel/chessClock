@@ -30,11 +30,13 @@ isNum = all (`elem` "0123456789")
 checkTimeFormat :: Time -> Bool
 checkTimeFormat time = isNum (fst time) && isNum (snd time)
   
+-- parse -t argument
 getTime :: [String] -> [String]
 getTime args = let index = elemIndex "-t" args in
   if isNothing index then ["10","00"]
   else splitOn ":" $ (!!) args $ 1 + fromJust index
 
+-- parse -i argument
 getIncrement :: [String] -> Maybe Int
 getIncrement args = let index = elemIndex "-i" args in
   if isNothing index
@@ -47,6 +49,14 @@ parseArgs args = ((last $ init time, last time), increment) where
   time = getTime args
   maybeInc = getIncrement args
   increment = fromMaybe 0 maybeInc
+
+-- get ready message with countdown before starting the clock
+printGetReady :: Int -> IO ()
+printGetReady 0 = return ()
+printGetReady sec = do
+  printf "\x1b[2J\x1b[1;1fGame starts in %d\n" sec
+  threadDelay 1000000
+  printGetReady (sec - 1)
 
 -- check if spacebar button has been pressed
 spacebarPressDetector :: ThreadId -> IO ()
@@ -92,6 +102,7 @@ main = do
   let time = if checkTimeFormat $ fst params
              then normalizeTime $ fst params
              else ("10", "00")
+  printGetReady 15
   catchJust (\e -> if e == ThreadKilled then Just () else Nothing)
             (mainLoop State { clock = (time, time), move = W } $ snd params)
             (\e -> return ())
