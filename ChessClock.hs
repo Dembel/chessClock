@@ -51,7 +51,11 @@ parseArgs args = ((last $ init time, last time), increment) where
   increment = fromMaybe 0 maybeInc
 
 -- get ready message with countdown before starting the clock
+<<<<<<< HEAD
 printGetReady :: Int -> IO ()
+=======
+printGetReady :: Int -> IO()
+>>>>>>> 83fe29386fbc3966e6507f697ddaf5d7e89e3d7a
 printGetReady 0 = return ()
 printGetReady sec = do
   printf "\x1b[2J\x1b[1;1fGame starts in %d\n" sec
