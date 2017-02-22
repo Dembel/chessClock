@@ -2,13 +2,14 @@ module Main where
 
 import Control.Concurrent
 import Control.Concurrent.MVar
+import Control.Monad (when)
 import Control.Exception (catchJust)
 import Control.Exception.Base (AsyncException (ThreadKilled))
 import Clock
 import Data.Either (isLeft)
-import Data.List (findIndex)
+import Data.List (elemIndex)
 import Data.List.Split (splitOn)
-import Data.Maybe (fromJust, isNothing)
+import Data.Maybe (fromJust, isNothing, fromMaybe)
 import System.Environment (getArgs)
 import System.Exit (exitFailure)
 import System.IO (hSetBuffering, stdin, BufferMode (NoBuffering))
@@ -23,31 +24,29 @@ switchMove state = if move state == W
 
 -- check if string is number
 isNum :: String -> Bool
-isNum = all (\t -> t `elem` "0123456789")
+isNum = all (`elem` "0123456789")
 
 -- check correctness of Time
 checkTimeFormat :: Time -> Bool
-checkTimeFormat time = if (isNum $ fst time) && (isNum $ snd time)
-  then True
-  else False
+checkTimeFormat time = isNum (fst time) && isNum (snd time)
   
 getTime :: [String] -> [String]
-getTime args = let index = findIndex (== "-t") args in
+getTime args = let index = elemIndex "-t" args in
   if isNothing index then ["10","00"]
-  else splitOn ":" $ (!!) args $ 1 + (fromJust index)
+  else splitOn ":" $ (!!) args $ 1 + fromJust index
 
 getIncrement :: [String] -> Maybe Int
-getIncrement args = let index = findIndex (== "-i") args in
+getIncrement args = let index = elemIndex "-i" args in
   if isNothing index
   then Just 0
-  else readMaybe $ (!!) args $ 1 + (fromJust index)
+  else readMaybe $ (!!) args $ 1 + fromJust index
 
 -- get Time and increment, uses two helper functions above
 parseArgs :: [String] -> (Time, Int)
 parseArgs args = ((last $ init time, last time), increment) where
   time = getTime args
   maybeInc = getIncrement args
-  increment = if isNothing maybeInc then 0 else fromJust maybeInc
+  increment = fromMaybe 0 maybeInc
 
 -- check if spacebar button has been pressed
 spacebarPressDetector :: ThreadId -> IO ()
@@ -56,10 +55,6 @@ spacebarPressDetector timerID = do
   key <- getChar
   if key == ' ' then killThread timerID else spacebarPressDetector timerID
 
--- syntactic sugar for threadDelay function, use seconds instead of microseconds
-threadDelaySec :: Int -> IO ()
-threadDelaySec sec = threadDelay (10 ^ 6 * sec)
-
 timer :: ClockState -> MVar ClockState -> IO ()
 timer State { clock = (("00","00"), _)} _ = do
   printf "\x1b[2J\x1b[1;1fBlack won on time\n"
@@ -67,16 +62,15 @@ timer State { clock = (("00","00"), _)} _ = do
 timer State { clock = (_, ("00","00"))} _ = do
   printf "\x1b[2J\x1b[1;1fWhite won on time\n"
   exitFailure
-timer state mvar = do
-  catchJust (\e -> if e == ThreadKilled then Just () else Nothing)
-            (runTimer)
-            (\_ -> putMVar mvar state) where
+timer state mvar = catchJust (\e -> if e == ThreadKilled then Just () else Nothing)
+  runTimer
+  (\_ -> putMVar mvar state) where
     runTimer = do
       let white = fst $ clock state
       let black = snd $ clock state
       let curMove = move state
       printPrettyClock (white, black)
-      threadDelaySec 1
+      threadDelay 1000000
       if curMove == W
         then timer State { clock = (countdown white, black), move = curMove } mvar
         else timer State { clock = (white, countdown black), move = curMove } mvar
@@ -86,9 +80,7 @@ mainLoop state inc = do
   mainThreadId <- myThreadId
   stateMVar <- newEmptyMVar
   timerID <- forkFinally (timer state stateMVar)
-                         (\e -> if isLeft e
-                                then killThread mainThreadId
-                                else return ())
+                         (\e -> when (isLeft e) $ killThread mainThreadId)
   forkIO $ spacebarPressDetector timerID
   lastState <- takeMVar stateMVar
   mainLoop (switchMove $ incrementClock lastState inc) inc

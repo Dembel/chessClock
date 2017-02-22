@@ -22,22 +22,22 @@ data Move = W | B deriving Eq
 -- add zero to minutes or seconds if there's only one digit to conform to
 -- digital clock standarts (e.g. 2-digit numbers)
 addZero :: String -> String
-addZero str = if (length str) < 2 then '0' : str else str
+addZero str = if length str < 2 then '0' : str else str
 
 -- bring seconds to time standarts where seconds can't be gt 60.
 -- Ignores minutes, we deal with them in normalizeTime func (see below)
 -- Serves as helper for normalizeTime func
 normalizeSec :: Int -> Int
 normalizeSec sec | sec < 60            = sec
-            | (sec `div` 60) == 1 = sec - 60
-            | otherwise           = normalizeSec $ sec - 60
+                 | (sec `div` 60) == 1 = sec - 60
+                 | otherwise           = normalizeSec (sec - 60)
 
 -- bring input to time standarts by correcting it's minutes and seconds
 -- (e.g. 00:120 input would be transformed into 02:00 etc.)
 normalizeTime :: Time -> Time
 normalizeTime time = normalized where
   sec = read $ snd time
-  min = addZero . show $ (read $ fst time) + (sec `div` 60)
+  min = addZero . show $ read (fst time) + (sec `div` 60)
   normalized = (min, addZero . show $ normalizeSec sec)
                
 {- ********************************************************************** -}
@@ -47,7 +47,7 @@ normalizeTime time = normalized where
 incrementTime :: Time -> Int -> Time
 incrementTime time inc = normalizeTime (min, sec) where
   min = fst time
-  sec = show $ (read $ snd time) + inc
+  sec = show $ read (snd time) + inc
 
 -- add increment to the ClockState. Uses incrementTime (see above) as helper
 incrementClock :: ClockState -> Int -> ClockState
@@ -72,18 +72,18 @@ countdown time = newTime where
 prettifyClock :: Clock -> String
 prettifyClock clock = prettifyed where
   colon = [["   ", "   ", "|||", "   ", "   ", "|||", "   ", "   "]]
-  space = [x | x <- [chunksOf 1 $ concat $ replicate 8 " "]]
-  colums = [x | x <- [chunksOf 1 $ concat $ replicate 8 "\n"]]
-  whiteFg = [x | x <- [words $ concat $ replicate 8 "\x1b[37;40m "]]
-  redFg = [x | x <- [words $ concat $ replicate 8 "\x1b[31;40m "]]
-  resetColors = [x | x <- [words $ concat $ replicate 8 "\x1b[39;49m "]]
+  space = [chunksOf 1 $ concat $ replicate 8 " "]
+  columns = [chunksOf 1 $ concat $ replicate 8 "\n"]
+  whiteFg = [words $ concat $ replicate 8 "\x1b[37;40m "]
+  redFg = [words $ concat $ replicate 8 "\x1b[31;40m "]
+  resetColors = [words $ concat $ replicate 8 "\x1b[39;49m "]
   wMin = map (\num -> numbers !! read num) (chunksOf 1 $ fst $ fst clock)
   wSec = map (\num -> numbers !! read num) (chunksOf 1 $ snd $ fst clock)
   bMin = map (\num -> numbers !! read num) (chunksOf 1 $ fst $ snd clock)
   bSec = map (\num -> numbers !! read num) (chunksOf 1 $ snd $ snd clock)
   prettifyed = concatMap unwords $ transpose $
                whiteFg ++ wMin ++ colon ++ wSec ++ resetColors ++ space ++ redFg
-               ++ bMin ++ colon ++ bSec ++ resetColors ++ colums
+               ++ bMin ++ colon ++ bSec ++ resetColors ++ columns
 
 {- ********************************************************************** -}
 
