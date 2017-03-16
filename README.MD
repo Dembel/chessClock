@@ -10,6 +10,7 @@ Use this little tool if you have no chess clock handy but want to play chess wit
 It's CLI software, no GUI.
 
 *-t mm:ss - set time (default: 10:00)*
+
 *-i sec - set increment (default 0)*
 
 Example usage
