@@ -1,8 +1,8 @@
 name: ChessClock
 version: 0.0.1.0
-synopsis: Chess clock CLI program for playing chess with time control
+synopsis: chesssClock [-t] [-i]
 
-description: Use this program if you have no chess clock handy but want to play chess with time control. use -t mm:ss to set time and -i sec to set increment. Default values are 10:00 and 0
+description: Use this program if you have no chess clock handy but want to play chess with time control. It's CLI software, no GUI.
 
 license: MIT
 license-file: LICENSE
@@ -15,4 +15,3 @@ executable ChessClock
   main-is: ChessClock.hs
   other-modules: NeatNumbers, Clock
   build-depends: base ==4.9.*, split ==0.2.*
-  
