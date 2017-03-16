@@ -1,10 +1,11 @@
 # ChessClock
-## version 0.0.1.0
-
 Chess clock for playing chess with time control
+
 chessClock [-t] [-i]
 
-Use this little tool if you have no chess clock handy but want to play chess with time control. To make move player presses the spacebar.
+## version 0.0.1.0
+
+Use this little tool if you have no chess clock handy but want to play chess with time control. Press the spacebar to make move.
 
 It's CLI software, no GUI.
 
