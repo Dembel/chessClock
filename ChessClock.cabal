@@ -1,8 +1,8 @@
 name: ChessClock
-version: 0.0.1.0
+version: 0.0.1.1
 synopsis: chesssClock [-t] [-i]
 
-description: Use this program if you have no chess clock handy but want to play chess with time control. It's CLI software, no GUI.
+description: Use this little tool if you want to play chess with time control but have no chess clock handy. It's CLI software, no GUI.
 
 license: MIT
 license-file: LICENSE

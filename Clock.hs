@@ -90,4 +90,4 @@ prettifyClock clock = prettifyed where
 -- print given Clock to stdout
 printPrettyClock :: Clock -> IO ()
 printPrettyClock clock = printf "\n%s%s" backtrack (prettifyClock clock) where
-  backtrack = "\x1b[2J\x1b[12;1f"
+  backtrack = "\x1b[2J\x1b[12;1f\x1b[?25l"
