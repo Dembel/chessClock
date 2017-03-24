@@ -1,5 +1,13 @@
-module Clock (Clock, Time, ClockState (..), Move (..)
-             , printPrettyClock, countdown, incrementClock, normalizeTime) where
+module Clock (
+               Clock
+             , Time
+             , ClockState (..)
+             , Move (..)
+             , printPrettyClock
+             , countdown
+             , incrementClock
+             , normalizeTime
+             ) where
 
 import Data.List (transpose, replicate, words)
 import Data.List.Split (chunksOf)
@@ -14,13 +22,9 @@ type White = Time
 type Black = Time
 type Clock = (White, Black)
 
-data ClockState = State { clock :: Clock, move :: Move }
-data Move = W | B deriving Eq
+data ClockState = State { clock :: Clock, move :: Move } deriving (Eq, Show)
+data Move = W | B deriving (Eq, Show)
 
-{- ******************** clock-normalizing stuff ******************** -}
-
--- add zero to minutes or seconds if there's only one digit to conform to
--- digital clock standarts (e.g. 2-digit numbers)
 addZero :: String -> String
 addZero str = if length str < 2 then '0' : str else str
 
@@ -39,36 +43,34 @@ normalizeTime time = normalized where
   sec = read $ snd time
   min = addZero . show $ read (fst time) + (sec `div` 60)
   normalized = (min, addZero . show $ normalizeSec sec)
-               
-{- ********************************************************************** -}
-{- ******************** operations on clock ***************************** -}
 
--- helper for incrementClock (see below)
-incrementTime :: Time -> Int -> Time
-incrementTime time inc = normalizeTime (min, sec) where
-  min = fst time
-  sec = show $ read (snd time) + inc
-
--- add increment to the ClockState. Uses incrementTime (see above) as helper
 incrementClock :: ClockState -> Int -> ClockState
 incrementClock state inc = incremented where
   white = fst $ clock state
   black = snd $ clock state
   incremented = if move state == W
-    then State { clock = (incrementTime white inc, black), move = move state }
-    else State { clock = (white, incrementTime black inc), move = move state }
+    then State { clock = (incTime white inc, normalizeTime black),
+                 move = move state }
+    else State { clock = (normalizeTime white, incTime black inc),
+                 move = move state }
+         
+incTime :: Time -> Int -> Time
+incTime time inc = normalizeTime (min, sec) where
+  min = fst time
+  sec = show $ read (snd time) + inc
 
--- subtract one second from Time
 countdown :: Time -> Time
 countdown time = newTime where
   min = read $ fst time :: Int
   sec = read $ snd time :: Int
   newTime = if sec == 0
-    then (addZero . show $ min - 1, "59")
-    else (addZero $ show min, addZero . show $ sec - 1)
+    then normalizeTime (show $ min - 1, "59")
+    else normalizeTime (show min, show $ sec - 1)
 
--- take Time as Int from Clock and
--- replace digits with neat big numbers improving readability
+printPrettyClock :: Clock -> IO ()
+printPrettyClock clock = printf "\n%s%s" backtrack (prettifyClock clock) where
+  backtrack = "\x1b[2J\x1b[12;1f\x1b[?25l"
+  
 prettifyClock :: Clock -> String
 prettifyClock clock = prettifyed where
   colon = [["   ", "   ", "|||", "   ", "   ", "|||", "   ", "   "]]
@@ -84,10 +86,3 @@ prettifyClock clock = prettifyed where
   prettifyed = concatMap unwords $ transpose $
                whiteFg ++ wMin ++ colon ++ wSec ++ resetColors ++ space ++ redFg
                ++ bMin ++ colon ++ bSec ++ resetColors ++ columns
-
-{- ********************************************************************** -}
-
--- print given Clock to stdout
-printPrettyClock :: Clock -> IO ()
-printPrettyClock clock = printf "\n%s%s" backtrack (prettifyClock clock) where
-  backtrack = "\x1b[2J\x1b[12;1f\x1b[?25l"

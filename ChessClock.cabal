@@ -1,5 +1,5 @@
 name: ChessClock
-version: 0.0.1.1
+version: 0.0.1.2
 synopsis: chesssClock [-t] [-i]
 
 description: Use this little tool if you want to play chess with time control but have no chess clock handy. It's CLI software, no GUI.
@@ -13,5 +13,12 @@ build-type: Simple
 cabal-version: >=1.8
 executable ChessClock
   main-is: ChessClock.hs
-  other-modules: NeatNumbers, Clock
+  other-modules: NeatNumbers, Clock, Utils
+  hs-source-dirs: src
   build-depends: base ==4.9.*, split ==0.2.*
+test-suite hspec
+  build-depends: base ==4.9.*, split ==0.2.*, hspec
+  other-modules: Clock, Utils
+  hs-source-dirs: test, src
+  main-is: Spec.hs
+  type: exitcode-stdio-1.0

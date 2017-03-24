@@ -1,7 +1,7 @@
 # ChessClock
 Chess clock for playing chess with time control
 
-## version 0.0.1.1
+## version 0.0.1.2
 
 ## Synopsis
 chessClock [-t] [-i]
