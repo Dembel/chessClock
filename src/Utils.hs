@@ -1,7 +1,4 @@
-module Utils (
-    elemAt
-  , isTime
-  ) where
+module Utils (elemAt, isTime) where
 
 import Data.Maybe (isNothing)
 import Text.Read (readMaybe)

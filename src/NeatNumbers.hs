@@ -1,4 +1,4 @@
-module NeatNumbers (numbers, prettify) where
+module NeatNumbers (numbers) where
 
 zero = [" |||||| ", "||    ||", "||    ||", "||    ||", "||    ||", "||    ||"
        , "||    ||", " |||||| "]
@@ -22,6 +22,3 @@ nine = [" |||||| ", "||    ||", "||    ||", "||    ||", " |||||||"
        , "      ||", "||    ||", " |||||| "]
 
 numbers = [zero, one, two, three, four, five, six, seven, eight, nine]
-
-prettify :: Int -> String
-prettify num = unlines $ numbers !! num

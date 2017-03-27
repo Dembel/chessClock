@@ -20,8 +20,8 @@ import Utils (elemAt, isTime)
 main = do
   args <- getArgs
   let params = parseArgs args
-  let time = if isTime $ fst params
-             then normalizeTime $ fst params
+  let time = if isTime (fst params)
+             then normalizeTime (fst params)
              else ("10", "00")
   printGetReady 10
   finally (catchJust (\e -> if e == ThreadKilled then Just () else Nothing)
