@@ -13,6 +13,7 @@ import Data.List (transpose, replicate, words)
 import Data.List.Split (chunksOf)
 import NeatNumbers (numbers)
 import Text.Printf (printf)
+import UI (clockFrame)
 
 type Min = String
 type Sec = String
@@ -74,8 +75,8 @@ printPrettyClock clock = printf "\n%s%s" backtrack (prettifyClock clock) where
 prettifyClock :: Clock -> String
 prettifyClock clock = prettifyed where
   colon = [["   ", "   ", "|||", "   ", "   ", "|||", "   ", "   "]]
-  space = [chunksOf 1 $ concat $ replicate 8 " "]
-  columns = [chunksOf 1 $ concat $ replicate 8 "\n"]
+  space = [chunksOf 1 $ concat $ replicate 10 " "]
+  columns = [chunksOf 1 $ concat $ replicate 10 "\n"]
   whiteFg = [words $ concat $ replicate 8 "\x1b[37;40m "]
   redFg = [words $ concat $ replicate 8 "\x1b[31;40m "]
   resetColors = [words $ concat $ replicate 8 "\x1b[39;49m "]
@@ -84,5 +85,5 @@ prettifyClock clock = prettifyed where
   bMin = map (\num -> numbers !! read num) (chunksOf 1 $ fst $ snd clock)
   bSec = map (\num -> numbers !! read num) (chunksOf 1 $ snd $ snd clock)
   prettifyed = concatMap unwords $ transpose $
-               whiteFg ++ wMin ++ colon ++ wSec ++ resetColors ++ space ++ redFg
+               clockFrame ++ whiteFg ++ wMin ++ colon ++ wSec ++ resetColors ++ space ++ redFg
                ++ bMin ++ colon ++ bSec ++ resetColors ++ columns
