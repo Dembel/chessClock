@@ -98,10 +98,9 @@ spacebarPressDetector timerID = do
   key <- getChar
   if key == ' ' then killThread timerID else spacebarPressDetector timerID
 
-switchMove :: ClockState -> ClockState
-switchMove state = if move state == W
-  then State { clock = clock state, move = B }
-  else State { clock = clock state, move = W }
+printPrettyClock :: Clock -> IO ()
+printPrettyClock clock = printf "\n%s%s" backtrack (prettifyClock clock) where
+  backtrack = "\x1b[2J\x1b[12;1f\x1b[?25l"  
 
 cleanUp :: IO ()
 cleanUp = printf "\x1b[?25h"

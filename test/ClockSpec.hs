@@ -14,6 +14,8 @@ spec = do
       normalizeTime ("7", "042") `shouldBe` ("07", "42")
       normalizeTime ("08", "60") `shouldBe` ("09", "00")
       normalizeTime ("67", "44") `shouldBe` ("67", "44")
+      normalizeTime ("67", "18000000") `shouldBe` ("99", "59")
+      normalizeTime ("99", "60") `shouldBe` ("99", "59")
 
   describe "countdown" $ do
     it "should subtract one second from time" $ do
@@ -30,3 +32,10 @@ spec = do
         `shouldBe` State { clock = (("10", "59"), ("03", "04")), move = B }
       incrementClock State { clock = (("4", "59"), ("2", "54")), move = B } 5
         `shouldBe` State { clock = (("04", "59"), ("02", "59")), move = B }
+
+  describe "switchMove" $ do
+    it "should correctly switch move when given ClockState" $ do
+      switchMove State { clock = (("10", "00"), ("09", "00")), move = W }
+        `shouldBe` State { clock = (("10", "00"), ("09", "00")), move = B }
+      switchMove State { clock = (("10", "23"), ("09", "45")), move = B }
+        `shouldBe` State { clock = (("10", "23"), ("09", "45")), move = W }

@@ -1,7 +1,7 @@
 # ChessClock
 Chess clock for playing chess with time control
 
-## version 0.0.1.2
+## version 0.0.1.3
 
 ## Synopsis
 chessClock [-t] [-i]
@@ -14,7 +14,7 @@ It's CLI software, no GUI.
 ### Keys
 spacebar - make move
 
-### Arguments (Erroneuos input would be ignored and default values would be used)
+### Arguments (Erroneuos input would be ignored and default values would be used, maximum time for the moment is 99:59, everything greater than that will be brought to the maximum)
 **-t mm:ss** - set time (default: 10:00)
 
 **-i sec** - set increment (default 0)
