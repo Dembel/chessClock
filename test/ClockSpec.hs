@@ -26,16 +26,19 @@ spec = do
 
   describe "incrementClock" $ do
     it "should increment the clock" $ do
-      incrementClock State { clock = (("1", "25"), ("2", "15")), move = W } 2
-        `shouldBe` State { clock = (("01", "27"), ("02", "15")), move = W }
-      incrementClock State { clock = (("10", "59"), ("2", "54")), move = B } 10
-        `shouldBe` State { clock = (("10", "59"), ("03", "04")), move = B }
-      incrementClock State { clock = (("4", "59"), ("2", "54")), move = B } 5
-        `shouldBe` State { clock = (("04", "59"), ("02", "59")), move = B }
+      incrementClock State { clock = (("1", "25"), ("2", "15"))
+                           , move = W, wndSize = ("1", "1") } 2
+        `shouldBe` State { clock = (("01", "27"), ("02", "15")), move = W, wndSize = ("1", "1") }
+      incrementClock State { clock = (("10", "59"), ("2", "54"))
+                           , move = B, wndSize = ("1", "1") } 10
+        `shouldBe` State { clock = (("10", "59"), ("03", "04")), move = B, wndSize = ("1", "1") }
+      incrementClock State { clock = (("4", "59"), ("2", "54"))
+                           , move = B, wndSize = ("1", "1") } 5
+        `shouldBe` State { clock = (("04", "59"), ("02", "59")), move = B, wndSize = ("1", "1") }
 
   describe "switchMove" $ do
     it "should correctly switch move when given ClockState" $ do
-      switchMove State { clock = (("10", "00"), ("09", "00")), move = W }
-        `shouldBe` State { clock = (("10", "00"), ("09", "00")), move = B }
-      switchMove State { clock = (("10", "23"), ("09", "45")), move = B }
-        `shouldBe` State { clock = (("10", "23"), ("09", "45")), move = W }
+      switchMove State { clock = (("10", "00"), ("09", "00")), move = W, wndSize = ("1", "1") }
+        `shouldBe` State { clock = (("10", "00"), ("09", "00")), move = B, wndSize = ("1", "1") }
+      switchMove State { clock = (("10", "23"), ("09", "45")), move = B, wndSize = ("1", "1") }
+        `shouldBe` State { clock = (("10", "23"), ("09", "45")), move = W, wndSize = ("1", "1") }
