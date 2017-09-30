@@ -10,9 +10,11 @@ import Data.Either (isLeft)
 import Data.List (elemIndex)
 import Data.List.Split (splitOn)
 import Data.Maybe (fromJust, isNothing, fromMaybe, maybe)
+import System.Console.Terminal.Size (size, Window(..))
 import System.Environment (getArgs)
 import System.Exit (exitFailure)
-import System.IO (hSetBuffering, stdin, BufferMode (NoBuffering))
+import System.IO (hSetBuffering, stdin, stdout, BufferMode (NoBuffering))
+import UI (constructUI)
 import Text.Printf (printf)
 import Text.Read (readMaybe)
 import Utils (elemAt, isTime)
@@ -25,7 +27,8 @@ main = do
              else ("10", "00")
   printGetReady 10
   finally (catchJust (\e -> if e == ThreadKilled then Just () else Nothing)
-                     (mainLoop State { clock = (time, time), move = W } $ snd params)
+                     (mainLoop State { clock = (time, time), move = W,
+                                       wndSize = ("101", "25")} $ snd params)
                      (\e -> return ())) cleanUp
 
 parseArgs :: [String] -> (Time, Int)
@@ -70,7 +73,6 @@ mainLoop state inc = do
   lastState <- takeMVar stateMVar
   mainLoop (switchMove $ incrementClock lastState inc) inc
 
--- Run in separate thread
 timer :: ClockState -> MVar ClockState -> IO ()
 timer State { clock = (("00","00"), _)} _ = do
   printf "\x1b[2J\x1b[1;1fBlack won on time\n"
@@ -82,25 +84,29 @@ timer state mvar = catchJust (\e -> if e == ThreadKilled then Just () else Nothi
                              runTimer
                              (\_ -> putMVar mvar state) where
   runTimer = do
+    wndSizeMaybe <- size
+    let wndSize' = ( show $ width $ fromJust wndSizeMaybe
+                   , show $ height $ fromJust wndSizeMaybe)
     let white = fst $ clock state
     let black = snd $ clock state
     let curMove = move state
-    printPrettyClock (white, black)
+    draw (state)
     threadDelay 1000000
     if curMove == W
-      then timer State { clock = (countdown white, black), move = curMove } mvar
-      else timer State { clock = (white, countdown black), move = curMove } mvar
+      then timer State { clock = (countdown white, black), move = curMove
+                       , wndSize = wndSize'} mvar
+      else timer State { clock = (white, countdown black), move = curMove
+                       , wndSize = wndSize'} mvar
       
--- Run in separate thread
 spacebarPressDetector :: ThreadId -> IO ()
 spacebarPressDetector timerID = do
   hSetBuffering stdin NoBuffering
   key <- getChar
   if key == ' ' then killThread timerID else spacebarPressDetector timerID
 
-printPrettyClock :: Clock -> IO ()
-printPrettyClock clock = printf "\n%s%s" backtrack (prettifyClock clock) where
-  backtrack = "\x1b[2J\x1b[12;1f\x1b[?25l"  
+draw :: ClockState -> IO ()
+draw state = printf "\n%s%s" cls (constructUI state) where
+  cls = "\x1b[2J\x1b[?25l"  
 
 cleanUp :: IO ()
 cleanUp = printf "\x1b[?25h"

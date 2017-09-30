@@ -1,6 +1,11 @@
-module NeatNumbers (numbers) where
+module NeatNumbers (constructNum) where
+
+import Data.List.Split(chunksOf)
 
 type NeatNumber = [String]
+
+constructNum :: String -> [[String]]
+constructNum num = map (\num -> numbers !! read num) $ chunksOf 1 num
 
 numbers :: [NeatNumber]
 numbers = [zero, one, two, three, four, five, six, seven, eight, nine]
