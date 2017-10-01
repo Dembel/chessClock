@@ -10,9 +10,9 @@ type X = Int
 type Y = Int
 
 constructUI :: ClockState -> String
-constructUI state = (concatMap unwords $ transpose ui) ++ "\n" where
-  centerX = (read $ fst $ wndSize state) `div` 2
-  centerY = (read $ snd $ wndSize state) `div` 2
+constructUI state = concatMap unwords (transpose ui) ++ "\n" where
+  centerX = read (fst $ wndSize state) `div` 2
+  centerY = read (snd $ wndSize state) `div` 2
   moveFlag' = moveFlag (centerX - 47 + 22, centerY - 5) $ move state
   clock' = constructClock (centerX - 45) (centerY - 3) $ clock state  
   ui = moveFlag' ++ clockFrame (centerX - 47) (centerY - 4) ++ clock'

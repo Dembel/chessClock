@@ -90,7 +90,7 @@ timer state mvar = catchJust (\e -> if e == ThreadKilled then Just () else Nothi
     let white = fst $ clock state
     let black = snd $ clock state
     let curMove = move state
-    draw (state)
+    draw state
     threadDelay 1000000
     if curMove == W
       then timer State { clock = (countdown white, black), move = curMove
