@@ -21,6 +21,8 @@ import Utils (elemAt, isTime)
 
 main = do
   args <- getArgs
+  wndSizeMaybe <- size
+  let wndSize' = getWndSize wndSizeMaybe
   let params = parseArgs args
   let time = if isTime (fst params)
              then normalizeTime (fst params)
@@ -28,7 +30,7 @@ main = do
   printGetReady 10
   finally (catchJust (\e -> if e == ThreadKilled then Just () else Nothing)
                      (mainLoop State { clock = (time, time), move = W,
-                                       wndSize = ("101", "25")} $ snd params)
+                                       wndSize = wndSize' } $ snd params)
                      (\e -> return ())) cleanUp
 
 parseArgs :: [String] -> (Time, Int)
@@ -85,8 +87,7 @@ timer state mvar = catchJust (\e -> if e == ThreadKilled then Just () else Nothi
                              (\_ -> putMVar mvar state) where
   runTimer = do
     wndSizeMaybe <- size
-    let wndSize' = ( show $ width $ fromJust wndSizeMaybe
-                   , show $ height $ fromJust wndSizeMaybe)
+    let wndSize' = getWndSize wndSizeMaybe
     let white = fst $ clock state
     let black = snd $ clock state
     let curMove = move state
@@ -97,7 +98,11 @@ timer state mvar = catchJust (\e -> if e == ThreadKilled then Just () else Nothi
                        , wndSize = wndSize'} mvar
       else timer State { clock = (white, countdown black), move = curMove
                        , wndSize = wndSize'} mvar
-      
+
+getWndSize :: (Show n, Integral n) => Maybe (Window n) -> (String, String)
+getWndSize Nothing = ("101", "25")
+getWndSize wnd = (show $ width $ fromJust wnd, show $ height $ fromJust wnd)
+                            
 spacebarPressDetector :: ThreadId -> IO ()
 spacebarPressDetector timerID = do
   hSetBuffering stdin NoBuffering
