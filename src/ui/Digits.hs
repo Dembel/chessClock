@@ -1,16 +1,22 @@
-module NeatNumbers (constructNum) where
+module Digits (drawNum) where
 
 import Data.List.Split(chunksOf)
 
-type NeatNumber = [String]
+type Digit = [String]
 
-constructNum :: String -> [[String]]
-constructNum num = map (\num -> numbers !! read num) $ chunksOf 1 num
+drawNum :: Word -> [Digit]
+drawNum num = map (\num -> numbers !! read num) . chunksOf 1 $ serialize num
 
-numbers :: [NeatNumber]
+serialize :: Word -> String
+serialize = addZero . show
+
+addZero :: String -> String
+addZero str = if length str < 2 then '0' : str else str
+
+numbers :: [Digit]
 numbers = [zero, one, two, three, four, five, six, seven, eight, nine]
 
-zero :: NeatNumber
+zero :: Digit
 zero =  [" |||||| "
        , "||    ||"
        , "||    ||"
@@ -20,7 +26,7 @@ zero =  [" |||||| "
        , "||    ||"
        , " |||||| "]
        
-one :: NeatNumber
+one :: Digit
 one =   ["   ||   "
        , " ||||   "
        , "|| ||   "
@@ -30,7 +36,7 @@ one =   ["   ||   "
        , "   ||   "
        , "||||||||"]
       
-two :: NeatNumber
+two :: Digit
 two =   [" |||||| "
        , "||    ||"
        , "||    ||"
@@ -40,7 +46,7 @@ two =   [" |||||| "
        , "||      "
        , "||||||||"]
        
-three :: NeatNumber
+three :: Digit
 three = [" |||||| "
        , "||    ||"
        , "||    ||"
@@ -50,7 +56,7 @@ three = [" |||||| "
        , "||    ||"
        , " |||||| "]
         
-four :: NeatNumber
+four :: Digit
 four =  ["||    ||"
        , "||    ||"
        , "||    ||"
@@ -60,7 +66,7 @@ four =  ["||    ||"
        , "      ||"
        , "      ||"]
         
-five :: NeatNumber
+five :: Digit
 five =  ["||||||||"
        , "||      "
        , "||      "
@@ -70,7 +76,7 @@ five =  ["||||||||"
        , "      ||"
        , "||||||| "]
         
-six :: NeatNumber
+six :: Digit
 six =   [" |||||| "
        , "||    ||"
        , "||      "
@@ -80,7 +86,7 @@ six =   [" |||||| "
        , "||    ||"
        , " |||||| "]
         
-seven :: NeatNumber
+seven :: Digit
 seven = ["||||||||"
        , "     |||"
        , "    ||  "
@@ -90,7 +96,7 @@ seven = ["||||||||"
        , "||      "
        , "||      "]
         
-eight :: NeatNumber
+eight :: Digit
 eight = [" |||||| "
        , "||    ||"
        , "||    ||"
@@ -100,7 +106,7 @@ eight = [" |||||| "
        , "||    ||"
        , " |||||| "]
         
-nine :: NeatNumber
+nine :: Digit
 nine =  [" |||||| "
        , "||    ||"
        , "||    ||"

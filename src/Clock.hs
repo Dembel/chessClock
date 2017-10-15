@@ -10,8 +10,8 @@ module Clock (
              , switchMove
              ) where
 
-type Min = String
-type Sec = String
+type Min = Word
+type Sec = Word
 type Time = (Min, Sec)
 
 type White = Time
@@ -30,40 +30,33 @@ data ClockState = State {
 
 data Move = W | B deriving (Eq, Show)
 
-incrementClock :: ClockState -> Int -> ClockState
-incrementClock state inc = incremented where
-  white = fst $ clock state
-  black = snd $ clock state
-  incremented = if move state == W
-    then State { clock = (normalizeTime $ incTime white inc, normalizeTime black),
-                 move = move state, wndSize = wndSize state }
-    else State { clock = (normalizeTime white, normalizeTime $ incTime black inc),
-                 move = move state, wndSize = wndSize state }
-         
-incTime :: Time -> Int -> Time
-incTime time inc = (fst time, show $ read (snd time) + inc)
+incrementClock :: ClockState -> Word -> ClockState
+incrementClock state@State { clock = _, move = W, wndSize = _ } inc =
+  State { clock = (normalizeTime $ incTime (fst $ clock state) inc
+                  , normalizeTime . snd $ clock state)
+        , move = move state, wndSize = wndSize state }
+incrementClock state@State { clock = _, move = B, wndSize = _ } inc =  
+  State { clock = (normalizeTime . fst $ clock state
+                  , normalizeTime $ incTime (snd $ clock state) inc)
+        , move = move state, wndSize = wndSize state }
+  
+incTime :: Time -> Word -> Time
+incTime time inc = (fst time, snd time + inc)
 
 countdown :: Time -> Time
-countdown time = newTime where
-  min = read $ fst time
-  sec = read $ snd time
-  newTime = if sec == 0
-    then normalizeTime (show $ min - 1, "59")
-    else normalizeTime (show min, show $ sec - 1)
-
+countdown time@(_, 0) = (fst time - 1, 59)
+countdown time = (fst time, snd time - 1)
+  
 normalizeTime :: Time -> Time
 normalizeTime time = normalized where
-  sec = read $ snd time
-  min = addZero . show $ read (fst time) + (sec `div` 60)
-  normalized = bringToMax (min, addZero . show $ normalizeSec sec)
-
-addZero :: String -> String
-addZero str = if length str < 2 then '0' : str else str
+  sec = snd time
+  min = fst time + (sec `div` 60)
+  normalized = bringToMax (min, normalizeSec sec)
 
 bringToMax :: Time -> Time
-bringToMax time = if read (fst time) > 99 then ("99", "59") else time
+bringToMax time = if fst time > 99 then (99, 59) else time
 
-normalizeSec :: Int -> Int
+normalizeSec :: Word -> Word
 normalizeSec sec | sec < 60            = sec
                  | (sec `div` 60) == 1 = sec - 60
                  | otherwise           = normalizeSec (sec - 60)

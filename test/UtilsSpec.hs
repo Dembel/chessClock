@@ -12,11 +12,14 @@ spec = do
       ["foo", "bar", "foobar"] `elemAt` 2 `shouldBe` Just "foobar"
       [True, False] `elemAt` 0 `shouldBe` Just True
 
-  describe "isTime" $ do
-    it "should correctly check if given tuple is Time or not" $ do
-      isTime ("a", "25") `shouldBe` False
-      isTime ("10", "27") `shouldBe` True
-      isTime ("1", "2a") `shouldBe` False
-      isTime ("1", "2") `shouldBe` True
-      isTime ("01", "60") `shouldBe` True
-      isTime ("bd", "ssdd") `shouldBe` False
+  describe "parseArgs" $ do
+    it "should parse Time and increment from stdin" $ do
+      parseArgs ["-t", "10:47", "-i", "86"] `shouldBe` ((10, 47), 86)
+      parseArgs ["-e", "10:47", "-i", "ased"] `shouldBe` ((10, 0), 0)
+      parseArgs ["-i", "1", "-t", "12"] `shouldBe` ((10, 0), 1)
+      parseArgs ["-i", "-t", "1:er"] `shouldBe` ((1, 0), 0)
+      parseArgs ["-i", "-t", "-i", "4", "-t", "1:14"] `shouldBe` ((10, 0), 0)
+      parseArgs ["-i", "4e", "-t", "q1:14"] `shouldBe` ((10, 14), 0)
+      parseArgs ["-t"] `shouldBe` ((10, 00), 0)
+      parseArgs [] `shouldBe` ((10, 00), 0)
+      parseArgs [""] `shouldBe` ((10, 00), 0)

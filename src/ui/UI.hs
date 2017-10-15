@@ -1,13 +1,12 @@
 module UI (constructUI) where
 
 import Clock (Clock, ClockState(..), Move(..), WindowSize(..))
-import Data.List.Split (chunksOf)
 import Data.List (transpose, replicate)
-import NeatNumbers (constructNum)                    
+import Digits (drawNum)
 
 type UIElement = [[String]]
-type X = Int
-type Y = Int
+type X = Word
+type Y = Word
 
 constructUI :: ClockState -> String
 constructUI state = concatMap unwords (transpose ui) ++ "\n" where
@@ -19,10 +18,10 @@ constructUI state = concatMap unwords (transpose ui) ++ "\n" where
 
 constructClock :: X -> Y -> Clock -> UIElement
 constructClock x y clock = let 
-  wMin = constructNum (fst $ fst clock)
-  wSec = constructNum (snd $ fst clock)
-  bMin = constructNum (fst $ snd clock)
-  bSec = constructNum (snd $ snd clock)
+  wMin = drawNum (fst $ fst clock)
+  wSec = drawNum (snd $ fst clock)
+  bMin = drawNum (fst $ snd clock)
+  bSec = drawNum (snd $ snd clock)
   columns = [replicate 7 $ "\x1b[1E\x1b[" ++ show x ++ "C"]
   in
     setCursor (x + 2) y ++ whiteFg ++ wMin ++ colon ++ wSec ++ resetColors
@@ -42,9 +41,6 @@ whiteFgNoBg = [words $ concat $ replicate 8 "\x1b[37m "]
 
 redFg :: UIElement
 redFg = [words $ concat $ replicate 8 "\x1b[31;40m "]
-
-yellowBg :: UIElement
-yellowBg = [words $ concat $ replicate 8 "\x1b[30;43m "]
 
 redFgNoBg :: UIElement
 redFgNoBg = [words $ concat $ replicate 8 "\x1b[31m "]
@@ -86,10 +82,3 @@ colon = [[ "   "
 moveFlag :: (X, Y) -> Move -> UIElement
 moveFlag (x,y) W = setCursor x y ++ whiteFgNoBg ++ [["####"]] ++ resetColors
 moveFlag (x,y) B = setCursor (x + 44) y ++ redFgNoBg ++ [["####"]] ++ resetColors
-
---fillYellow :: X -> Y -> X -> Y -> UIElement
---fillYellow x y xend yend = let
---  columns = [replicate (yend - y) "\n"]
---  rows = [replicate (yend - y) (concat $ replicate (xend - x) " ")] in
---    [[concatMap unwords $ transpose
---       $ setCursor x y ++ yellowBg ++ rows ++ columns]] ++ resetColors
