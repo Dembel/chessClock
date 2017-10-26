@@ -53,6 +53,6 @@ spec :: Spec
 spec = do
   describe "random tests" $ do
     it "should pass parseArgs random tests" $ do
-      quickCheckWith stdArgs { maxSuccess = 10000 } prop_ParseArgs
-      quickCheckWith stdArgs { maxSuccess = 10000 } prop_ParseWrongArgs
-      quickCheckWith stdArgs { maxSuccess = 10000 } prop_ParseRandomArgs
+      quickCheckWith stdArgs { maxSuccess = 1000 } prop_ParseArgs
+      quickCheckWith stdArgs { maxSuccess = 1000 } prop_ParseWrongArgs
+      quickCheckWith stdArgs { maxSuccess = 1000 } prop_ParseRandomArgs

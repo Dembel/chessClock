@@ -1,8 +1,9 @@
-module Utils (elemAt, parseArgs) where
+module Utils (elemAt, parseArgs, getWndSize) where
 
 import Data.List (elemIndex)
 import Data.List.Split (splitOn)
-import Data.Maybe (fromMaybe)
+import Data.Maybe (fromJust, fromMaybe)
+import System.Console.Terminal.Size (size, Window(..))
 import Text.Read (readMaybe)
 
 parseArgs :: [String] -> ((Word, Word), Word)
@@ -21,6 +22,10 @@ getTime args = time where
 getIncrement :: [String] -> Word
 getIncrement args = let index = fromMaybe 999 $ elemIndex "-i" args in
   fromMaybe 0 $ readMaybe $ fromMaybe "0" $ args `elemAt` (1 + index)
+
+getWndSize :: (Show n, Integral n) => Maybe (Window n) -> (String, String)
+getWndSize Nothing = ("101", "25")
+getWndSize wnd = (show $ width $ fromJust wnd, show $ height $ fromJust wnd)  
 
 elemAt :: [a] -> Int -> Maybe a
 elemAt [] _ = Nothing

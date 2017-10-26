@@ -20,4 +20,4 @@ spec :: Spec
 spec = do
   describe "random tests" $ do
     it "should pass countdown random tests" $ do
-      quickCheckWith stdArgs { maxSuccess = 10000 } prop_Countdown
+      quickCheckWith stdArgs { maxSuccess = 1000 } prop_Countdown

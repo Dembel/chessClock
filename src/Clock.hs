@@ -31,14 +31,12 @@ data ClockState = State {
 data Move = W | B deriving (Eq, Show)
 
 incrementClock :: ClockState -> Word -> ClockState
-incrementClock state@State { clock = _, move = W, wndSize = _ } inc =
-  State { clock = (normalizeTime $ incTime (fst $ clock state) inc
-                  , normalizeTime . snd $ clock state)
-        , move = move state, wndSize = wndSize state }
-incrementClock state@State { clock = _, move = B, wndSize = _ } inc =  
-  State { clock = (normalizeTime . fst $ clock state
-                  , normalizeTime $ incTime (snd $ clock state) inc)
-        , move = move state, wndSize = wndSize state }
+incrementClock state@State { move = W } inc =
+  state { clock = (normalizeTime $ incTime (fst $ clock state) inc
+                  , normalizeTime . snd $ clock state) }
+incrementClock state@_ inc =  
+  state { clock = (normalizeTime . fst $ clock state
+                  , normalizeTime $ incTime (snd $ clock state) inc) }
   
 incTime :: Time -> Word -> Time
 incTime time inc = (fst time, snd time + inc)
@@ -62,6 +60,5 @@ normalizeSec sec | sec < 60            = sec
                  | otherwise           = normalizeSec (sec - 60)
                  
 switchMove :: ClockState -> ClockState
-switchMove state = if move state == W
-  then State { clock = clock state, move = B, wndSize = wndSize state }
-  else State { clock = clock state, move = W, wndSize = wndSize state }
+switchMove state@State { move = W } = state { move = B }
+switchMove state@State { move = B } = state { move = W }

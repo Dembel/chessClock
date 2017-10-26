@@ -7,14 +7,13 @@ import Control.Exception (catchJust, finally)
 import Control.Exception.Base (AsyncException (ThreadKilled))
 import Clock
 import Data.Either (isLeft)
-import Data.Maybe (fromJust)
 import System.Console.Terminal.Size (size, Window(..))
 import System.Environment (getArgs)
 import System.Exit (exitSuccess)
-import System.IO (hSetBuffering, stdin, BufferMode (NoBuffering))
+import System.IO (hSetBuffering, hFlush, stdin, stdout, BufferMode (NoBuffering))
 import UI (constructUI)
 import Text.Printf (printf)
-import Utils (parseArgs)
+import Utils (parseArgs, getWndSize)
 
 main = do
   args <- getArgs
@@ -69,10 +68,6 @@ timer state mvar = catchJust (\e -> if e == ThreadKilled then Just () else Nothi
                        , move = curMove, wndSize = wndSize'} mvar
       else timer State { clock = (white, normalizeTime $ countdown black)
                        , move = curMove, wndSize = wndSize'} mvar
-
-getWndSize :: (Show n, Integral n) => Maybe (Window n) -> (String, String)
-getWndSize Nothing = ("101", "25")
-getWndSize wnd = (show $ width $ fromJust wnd, show $ height $ fromJust wnd)
                             
 spacebarPressDetector :: ThreadId -> IO ()
 spacebarPressDetector timerID = do
@@ -81,7 +76,7 @@ spacebarPressDetector timerID = do
   if key == ' ' then killThread timerID else spacebarPressDetector timerID
 
 draw :: ClockState -> IO ()
-draw state = printf "\n%s%s" cls (constructUI state) where
+draw state = printf "\n%s%s" cls (constructUI state) >> hFlush stdout where
   cls = "\x1b[2J\x1b[?25l"
 
 cleanUp :: IO ()

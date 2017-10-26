@@ -9,7 +9,7 @@ type X = Word
 type Y = Word
 
 constructUI :: ClockState -> String
-constructUI state = concatMap unwords (transpose ui) ++ "\n" where
+constructUI state = concatMap unwords (transpose ui) where
   centerX = read (fst $ wndSize state) `div` 2
   centerY = read (snd $ wndSize state) `div` 2
   moveFlag' = moveFlag (centerX - 47 + 22, centerY - 5) $ move state
